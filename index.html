@@ -1,96 +1,713 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xshebi Creator Tool</title>
+  <title>Xshebi Creator Tool - Complete</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: Arial, sans-serif; 
+      font-family: 'Segoe UI', Arial, sans-serif; 
       background: #0a0a12; 
-      color: #eaeaea; 
-      padding: 20px;
+      color: #eaeaea;
       min-height: 100vh;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
+    .app { padding: 0; }
+    .header {
+      background: linear-gradient(135deg, #0f3460, #e94560);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    h1 { font-size: 32px; margin-bottom: 20px; }
-    p { color: #666; margin-bottom: 20px; }
-    input { 
-      width: 100%; 
-      padding: 12px; 
-      margin-bottom: 15px; 
-      border-radius: 8px; 
+    .logo { font-size: 20px; font-weight: 800; }
+    .btn-back { 
+      background: #333; 
+      color: #fff; 
+      border: none; 
+      padding: 8px 12px; 
+      border-radius: 6px; 
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .section { padding: 16px; }
+    .card {
+      background: #13131f;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
       border: 1px solid #333;
-      background: #080810;
-      color: #eaeaea;
     }
-    button {
+    input, textarea {
+      width: 100%;
+      background: #080810;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #eaeaea;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .btn {
       width: 100%;
       padding: 12px;
-      background: #ffd700;
-      color: #000;
       border: none;
       border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 14px;
+      transition: all 0.3s;
     }
-    button:hover { background: #ffed4e; }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-primary:hover { background: #ff5a75; }
+    .btn-success { background: #00d4aa; color: #000; }
+    .btn-success:hover { background: #00e8c0; }
+    .btn-secondary { background: #0f3460; color: #fff; }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+    .tab {
+      background: transparent;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tab.active {
+      color: #e94560;
+      border-bottom-color: #e94560;
+    }
+    .result-box {
+      background: #060612;
+      border: 1px solid #00d4aa;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #00d4aa;
+    }
+    .label { font-size: 12px; color: #999; margin-bottom: 5px; display: block; }
+    .error { 
+      background: #2d0000; 
+      border: 1px solid #ff4444; 
+      color: #ff8888; 
+      padding: 10px; 
+      border-radius: 8px; 
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .success-box {
+      background: #0a1a0a;
+      border: 1px solid #00d4aa;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .file-input {
+      display: none;
+    }
+    .thumbnail-preview {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .thumbnail-img {
+      width: 80px;
+      height: 50px;
+      border-radius: 6px;
+      border: 2px solid #00d4aa;
+      object-fit: cover;
+      position: relative;
+    }
+    .feature-list {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.8;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 Xshebi Creator Tool</h1>
-    <p>YouTube creators ke liye AI-powered content tool!</p>
-    
-    <div style="background: #13131f; padding: 20px; border-radius: 12px; border: 1px solid #333;">
-      <h2 style="font-size: 20px; margin-bottom: 15px;">🔑 Gemini API Key Daalen</h2>
-      <p style="margin-bottom: 15px; color: #666;">aistudio.google.com se free key lein</p>
-      
-      <input type="password" id="apiKey" placeholder="AIza..." />
-      <button onclick="saveKey()">✅ Save & Start</button>
-    </div>
-    
-    <p style="margin-top: 30px; color: #666; font-size: 14px;">
-      ✅ Full featured tool loading...<br>
-      📊 Competitor analysis<br>
-      🏆 Viral title generator<br>
-      ✍️ Script writer<br>
-      🎨 Thumbnail creator
-    </p>
+  <div class="app">
+    <div id="root"></div>
   </div>
 
   <script>
-    function saveKey() {
-      const key = document.getElementById('apiKey').value;
-      if (!key.trim()) {
-        alert('API key daalen!');
-        return;
+    const API_KEY_STORAGE = 'xshebi_complete_key';
+    const PROJECTS_STORAGE = 'xshebi_complete_projects';
+
+    class XshebiApp {
+      constructor() {
+        this.apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
+        this.projects = JSON.parse(localStorage.getItem(PROJECTS_STORAGE) || '[]');
+        this.currentProject = null;
+        this.currentScreen = this.apiKey ? 'home' : 'apikey';
+        this.currentTab = 'data';
+        this.loading = false;
+        this.init();
       }
-      localStorage.setItem('xshebi_key', key);
-      alert('✅ Key saved! Tool loading...');
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
+
+      init() {
+        this.render();
+      }
+
+      saveKey(key) {
+        if (!key.trim()) {
+          alert('API key daalen!');
+          return;
+        }
+        localStorage.setItem(API_KEY_STORAGE, key.trim());
+        this.apiKey = key.trim();
+        this.currentScreen = 'home';
+        this.render();
+      }
+
+      createProject(name) {
+        if (!name.trim()) {
+          alert('Project name daalen!');
+          return;
+        }
+        const proj = {
+          id: Date.now(),
+          name: name.trim(),
+          viralTitles: '',
+          nonViralTitles: '',
+          viralScripts: '',
+          nonViralScripts: '',
+          seoData: '',
+          thumbnails: [],
+          analysis: null,
+          generatedTitles: '',
+          generatedScript: '',
+          generatedSEO: '',
+          generatedThumbs: '',
+          history: []
+        };
+        this.projects.push(proj);
+        this.saveProjects();
+        this.currentProject = proj;
+        this.currentScreen = 'project';
+        this.currentTab = 'data';
+        this.render();
+      }
+
+      openProject(id) {
+        this.currentProject = this.projects.find(p => p.id === id);
+        this.currentScreen = 'project';
+        this.currentTab = 'data';
+        this.render();
+      }
+
+      saveProjects() {
+        localStorage.setItem(PROJECTS_STORAGE, JSON.stringify(this.projects));
+      }
+
+      async analyzeCompetitor() {
+        if (!this.currentProject.viralTitles.trim()) {
+          alert('Viral titles daalen!');
+          return;
+        }
+
+        this.loading = true;
+        this.render();
+
+        try {
+          let thumbAnalysis = '';
+          if (this.currentProject.thumbnails.length > 0) {
+            thumbAnalysis = await this.callGemini(
+              `Analyse these YouTube thumbnails:\n1. COLORS\n2. TEXT STYLE\n3. FACE/EMOTION\n4. LAYOUT\n5. HOOKS\n6. CONTRAST\n7. CLICK-WORTHY ELEMENTS\n\nBe specific and actionable.`,
+              this.currentProject.thumbnails
+            );
+          }
+
+          const analysisPrompt = `YouTube strategist - analyse deeply:
+
+VIRAL TITLES:
+${this.currentProject.viralTitles}
+
+NON-VIRAL TITLES:
+${this.currentProject.nonViralTitles || 'None'}
+
+VIRAL SCRIPTS:
+${this.currentProject.viralScripts || 'None'}
+
+NON-VIRAL SCRIPTS:
+${this.currentProject.nonViralScripts || 'None'}
+
+SEO DATA:
+${this.currentProject.seoData || 'None'}
+
+THUMBNAIL ANALYSIS:
+${thumbAnalysis || 'None'}
+
+Provide:
+## VIRAL TITLE FORMULA
+## NON-VIRAL MISTAKES
+## SCRIPT STYLE ANALYSIS
+## SEO STRATEGY
+## THUMBNAIL STRATEGY
+## WINNING FORMULA SUMMARY`;
+
+          const analysis = await this.callGemini(analysisPrompt);
+          this.currentProject.analysis = analysis;
+          this.saveProjects();
+          this.currentTab = 'generate';
+          alert('✅ Analysis complete!');
+        } catch (e) {
+          alert('❌ Error: ' + e.message);
+        }
+
+        this.loading = false;
+        this.render();
+      }
+
+      async generateTitles() {
+        if (!this.currentProject.analysis) {
+          alert('Pehle analyse karo!');
+          return;
+        }
+
+        this.loading = true;
+        this.render();
+
+        try {
+          const prompt = `YouTube title expert. Generate 10 VIRAL titles:
+
+ANALYSIS:
+${this.currentProject.analysis}
+
+DO NOT copy these:
+${this.currentProject.viralTitles}
+
+AVOID this style:
+${this.currentProject.nonViralTitles || 'None'}
+
+Rules: Use winning formula, be fresh, use power words, emotion triggers.
+Format: Number. [TITLE]
+Formula: [what used]
+Why: [brief reason]
+---`;
+
+          const result = await this.callGemini(prompt);
+          this.currentProject.generatedTitles = result;
+          this.currentProject.history.push({ type: 'titles', date: new Date().toLocaleDateString(), data: result });
+          this.saveProjects();
+          alert('✅ Titles generated!');
+        } catch (e) {
+          alert('❌ Error: ' + e.message);
+        }
+
+        this.loading = false;
+        this.render();
+      }
+
+      async generateScript() {
+        if (!this.currentProject.generatedTitles) {
+          alert('Pehle titles generate karo!');
+          return;
+        }
+
+        this.loading = true;
+        this.render();
+
+        try {
+          const prompt = `Professional YouTube script writer.
+
+ANALYSIS:
+${this.currentProject.analysis}
+
+TITLE: ${this.currentProject.generatedTitles.split('\n')[0]}
+
+Write COMPLETE script:
+- Match competitor style exactly
+- Structure: Hook (30s) → Intro → Main → CTA
+- Add [PAUSE], [EMPHASIS], [B-ROLL] markers
+- Include timestamps
+- Same length as competitor`;
+
+          const result = await this.callGemini(prompt);
+          this.currentProject.generatedScript = result;
+          this.currentProject.history.push({ type: 'script', date: new Date().toLocaleDateString(), data: result });
+          this.saveProjects();
+          alert('✅ Script generated!');
+        } catch (e) {
+          alert('❌ Error: ' + e.message);
+        }
+
+        this.loading = false;
+        this.render();
+      }
+
+      async generateSEO() {
+        if (!this.currentProject.analysis) {
+          alert('Pehle analyse karo!');
+          return;
+        }
+
+        this.loading = true;
+        this.render();
+
+        try {
+          const prompt = `YouTube SEO specialist.
+
+ANALYSIS:
+${this.currentProject.analysis}
+
+TITLE: ${this.currentProject.generatedTitles.split('\n')[0] || 'Video'}
+
+Generate:
+## 5 OPTIMIZED TITLES
+## 40 TAGS
+## FULL DESCRIPTION (first 150 chars with keyword)
+## 15 HASHTAGS
+## BEST UPLOAD TIME
+## KEYWORD STRATEGY`;
+
+          const result = await this.callGemini(prompt);
+          this.currentProject.generatedSEO = result;
+          this.currentProject.history.push({ type: 'seo', date: new Date().toLocaleDateString(), data: result });
+          this.saveProjects();
+          alert('✅ SEO package generated!');
+        } catch (e) {
+          alert('❌ Error: ' + e.message);
+        }
+
+        this.loading = false;
+        this.render();
+      }
+
+      async generateThumbnails() {
+        if (!this.currentProject.analysis) {
+          alert('Pehle analyse karo!');
+          return;
+        }
+
+        this.loading = true;
+        this.render();
+
+        try {
+          const prompt = `Thumbnail designer expert.
+
+THUMBNAIL ANALYSIS:
+${this.currentProject.analysis}
+
+TITLE: ${this.currentProject.generatedTitles.split('\n')[0] || 'Video'}
+
+Create 3 unique thumbnail concepts:
+
+### THUMBNAIL 1
+CONCEPT: [idea]
+BACKGROUND: Color [hex] | Style [description]
+MAIN SUBJECT: [what to show]
+TEXT: "[exact text]"
+Font: [bold/outline] | Color: [hex] | Position: [location]
+AI PROMPT: [detailed Midjourney prompt]
+WHY: [why it works]
+
+### THUMBNAIL 2
+[Same format - completely different]
+
+### THUMBNAIL 3
+[Same format - completely different]`;
+
+          const result = await this.callGemini(prompt);
+          this.currentProject.generatedThumbs = result;
+          this.currentProject.history.push({ type: 'thumbnails', date: new Date().toLocaleDateString(), data: result });
+          this.saveProjects();
+          alert('✅ Thumbnails generated!');
+        } catch (e) {
+          alert('❌ Error: ' + e.message);
+        }
+
+        this.loading = false;
+        this.render();
+      }
+
+      async callGemini(prompt, images = []) {
+        const parts = [{ text: prompt }];
+        
+        for (const img of images) {
+          const b64 = await this.fileToB64(img);
+          parts.unshift({
+            inline_data: {
+              mime_type: img.type,
+              data: b64
+            }
+          });
+        }
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts }]
+            })
+          }
+        );
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err?.error?.message || 'API Error');
+        }
+
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+
+      fileToB64(file) {
+        return new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result.split(',')[1]);
+          reader.onerror = rej;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      handleThumbnailUpload(files) {
+        if (!files) return;
+        Array.from(files).slice(0, 4).forEach(file => {
+          this.currentProject.thumbnails.push(file);
+        });
+        this.saveProjects();
+        this.render();
+      }
+
+      render() {
+        const root = document.getElementById('root');
+
+        if (this.currentScreen === 'apikey') {
+          root.innerHTML = this.renderApiKey();
+        } else if (this.currentScreen === 'home') {
+          root.innerHTML = this.renderHome();
+        } else if (this.currentScreen === 'project') {
+          root.innerHTML = this.renderProject();
+        }
+      }
+
+      renderApiKey() {
+        return `
+          <div class="header">
+            <div class="logo">🚀 Xshebi Creator</div>
+          </div>
+          <div class="section">
+            <div class="card" style="text-align: center;">
+              <h1 style="font-size: 24px; margin-bottom: 10px;">🔑 API Key Required</h1>
+              <p style="color: #888; margin-bottom: 20px;">Get FREE key: aistudio.google.com</p>
+              <input type="password" id="keyInput" placeholder="AIza..." style="margin-bottom: 15px;" />
+              <button class="btn btn-primary" onclick="window.app.saveKey(document.getElementById('keyInput').value)">
+                ✅ Save & Start
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      renderHome() {
+        return `
+          <div class="header">
+            <div class="logo">🚀 Xshebi Creator</div>
+            <button class="btn-back" onclick="window.app.apiKey = ''; window.app.currentScreen = 'apikey'; window.app.render();">🔑 Change Key</button>
+          </div>
+          <div class="section">
+            <div class="card">
+              <label class="label">New Project</label>
+              <input type="text" id="projName" placeholder="Channel name..." />
+              <button class="btn btn-success" onclick="window.app.createProject(document.getElementById('projName').value)">
+                + Create Project
+              </button>
+            </div>
+
+            <h3 style="margin: 20px 0 10px; font-size: 14px;">My Projects (${this.projects.length})</h3>
+            ${this.projects.length === 0 ? 
+              '<div class="card" style="text-align: center; color: #888;">No projects yet - create one above!</div>' :
+              this.projects.map(p => `
+                <div class="card" style="cursor: pointer;" onclick="window.app.openProject(${p.id})">
+                  <div style="font-weight: 700; margin-bottom: 5px;">📌 ${p.name}</div>
+                  <div style="color: #666; font-size: 12px;">
+                    ${p.analysis ? '✅ Analysed' : '⏳ Not analysed'} • History: ${p.history.length}
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        `;
+      }
+
+      renderProject() {
+        return `
+          <div class="header">
+            <button class="btn-back" onclick="window.app.currentScreen = 'home'; window.app.render();">← Back</button>
+            <div class="logo">📌 ${this.currentProject.name}</div>
+            <span style="font-size: 12px; background: ${this.currentProject.analysis ? '#00d4aa' : '#666'}; padding: 4px 8px; border-radius: 4px;">
+              ${this.currentProject.analysis ? '✅' : '⏳'}
+            </span>
+          </div>
+
+          <div class="section">
+            <div class="tab-bar">
+              <button class="tab ${this.currentTab === 'data' ? 'active' : ''}" onclick="window.app.currentTab = 'data'; window.app.render();">📊 Data</button>
+              <button class="tab ${this.currentTab === 'generate' ? 'active' : ''}" onclick="window.app.currentTab = 'generate'; window.app.render();">🚀 Generate</button>
+              <button class="tab ${this.currentTab === 'history' ? 'active' : ''}" onclick="window.app.currentTab = 'history'; window.app.render();">📚 History</button>
+            </div>
+
+            ${this.loading ? `
+              <div class="card loading">
+                <div style="font-size: 28px; margin-bottom: 10px;">⚙️</div>
+                AI process kar raha hai...
+              </div>
+            ` : this.currentTab === 'data' ? this.renderDataTab() :
+              this.currentTab === 'generate' ? this.renderGenerateTab() :
+              this.renderHistoryTab()
+            }
+          </div>
+        `;
+      }
+
+      renderDataTab() {
+        return `
+          <div class="card">
+            <label class="label">🔥 Viral Titles (ek per line)</label>
+            <textarea id="viralTitles" placeholder="Title 1\nTitle 2\n...">${this.currentProject.viralTitles}</textarea>
+
+            <label class="label">❌ Non-Viral Titles</label>
+            <textarea id="nonViralTitles" placeholder="Title 1\nTitle 2\n...">${this.currentProject.nonViralTitles}</textarea>
+
+            <label class="label">📝 Viral Scripts (--- se alag karo)</label>
+            <textarea id="viralScripts" placeholder="Script 1\n---\nScript 2\n...">${this.currentProject.viralScripts}</textarea>
+
+            <label class="label">📝 Non-Viral Scripts</label>
+            <textarea id="nonViralScripts" placeholder="...">${this.currentProject.nonViralScripts}</textarea>
+
+            <label class="label">🏷️ SEO Data</label>
+            <textarea id="seoData" placeholder="Tags, keywords, descriptions...">${this.currentProject.seoData}</textarea>
+
+            <label class="label">🖼️ Thumbnails (max 4)</label>
+            <button class="btn btn-secondary" onclick="document.getElementById('thumbInput').click();">
+              📁 Upload (${this.currentProject.thumbnails.length}/4)
+            </button>
+            <input type="file" id="thumbInput" multiple accept="image/*" class="file-input" onchange="window.app.handleThumbnailUpload(this.files)" />
+
+            ${this.currentProject.thumbnails.length > 0 ? `
+              <div class="thumbnail-preview">
+                ${this.currentProject.thumbnails.map((t, i) => `
+                  <div style="position: relative;">
+                    <img src="${URL.createObjectURL(t)}" class="thumbnail-img" />
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <button class="btn btn-primary" onclick="window.app.analyzeCompetitor();" style="margin-top: 10px;">
+              🔍 Analyse Data
+            </button>
+
+            ${this.currentProject.analysis ? `
+              <div class="card" style="margin-top: 15px; border: 1px solid #00d4aa;">
+                <label class="label" style="color: #00d4aa;">✅ Analysis Complete</label>
+                <div class="result-box">${this.currentProject.analysis}</div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      renderGenerateTab() {
+        return `
+          ${!this.currentProject.analysis ? `
+            <div class="card error">
+              ⚠️ Pehle "Data" tab mein analyse karo!
+            </div>
+          ` : ''}
+
+          <div class="card">
+            <label class="label">🏆 Viral Titles</label>
+            <button class="btn btn-success" onclick="window.app.generateTitles();" style="margin-bottom: 10px;">
+              ✨ Generate 10 Titles
+            </button>
+            ${this.currentProject.generatedTitles ? `
+              <div class="result-box">${this.currentProject.generatedTitles}</div>
+            ` : ''}
+          </div>
+
+          <div class="card">
+            <label class="label">📝 Script</label>
+            <button class="btn btn-primary" onclick="window.app.generateScript();" style="margin-bottom: 10px;">
+              ✍️ Generate Script
+            </button>
+            ${this.currentProject.generatedScript ? `
+              <div class="result-box">${this.currentProject.generatedScript}</div>
+            ` : ''}
+          </div>
+
+          <div class="card">
+            <label class="label">📊 SEO Package</label>
+            <button class="btn btn-success" onclick="window.app.generateSEO();" style="margin-bottom: 10px;">
+              🏷️ Generate SEO
+            </button>
+            ${this.currentProject.generatedSEO ? `
+              <div class="result-box">${this.currentProject.generatedSEO}</div>
+            ` : ''}
+          </div>
+
+          <div class="card">
+            <label class="label">🎨 Thumbnail Concepts</label>
+            <button class="btn btn-primary" onclick="window.app.generateThumbnails();" style="margin-bottom: 10px;">
+              🎨 Generate Thumbnails
+            </button>
+            ${this.currentProject.generatedThumbs ? `
+              <div class="result-box">${this.currentProject.generatedThumbs}</div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      renderHistoryTab() {
+        return `
+          <div class="card">
+            <h3 style="margin-bottom: 10px;">📚 Project History (${this.currentProject.history.length})</h3>
+            ${this.currentProject.history.length === 0 ? 
+              '<div style="color: #666; font-size: 12px;">No history yet</div>' :
+              this.currentProject.history.map((h, i) => `
+                <div style="background: #0a0a12; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #00d4aa;">
+                  <div style="font-weight: 600; font-size: 13px; color: #00d4aa;">
+                    ${h.type === 'titles' ? '🏆' : h.type === 'script' ? '📝' : h.type === 'seo' ? '📊' : '🎨'} ${h.type} - ${h.date}
+                  </div>
+                  <div style="color: #888; font-size: 11px; margin-top: 5px; max-height: 60px; overflow: hidden;">
+                    ${h.data.slice(0, 100)}...
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        `;
+      }
     }
-    
-    const saved = localStorage.getItem('xshebi_key');
-    if (saved) {
-      document.querySelector('.container').innerHTML = `
-        <h1>✅ Xshebi Creator Tool Ready!</h1>
-        <p>API Key saved successfully!</p>
-        <div style="background: #13131f; padding: 20px; border-radius: 12px; border: 1px solid #00d4aa; margin-top: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 10px; color: #00d4aa;">Tool Features:</h2>
-          <p>✅ Competitor Analysis<br>✅ Viral Titles<br>✅ Script Generator<br>✅ SEO Package<br>✅ Thumbnail Ideas</p>
-          <button onclick="localStorage.removeItem('xshebi_key'); location.reload();" style="margin-top: 20px; background: #e94560;">🔑 Change Key</button>
-        </div>
-      `;
-    }
+
+    window.app = new XshebiApp();
   </script>
 </body>
-</html>
+  </html>
