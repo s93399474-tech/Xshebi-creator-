@@ -1,1 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xshebi Creator Tool</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    import { useState, useEffect, useRef } from "react";
 
+    const C = {
+      bg: "#0a0a12", card: "#13131f", card2: "#1a1a2e", accent: "#e94560",
+      accent2: "#0f3460", text: "#eaeaea", muted: "#666", green: "#00d4aa",
+      yellow: "#ffd700", purple: "#9b59b6", blue: "#3498db"
+    };
+
+    const S = {
+      app: { minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI',sans-serif" },
+      hdr: { background: `linear-gradient(135deg,${C.accent2},${C.accent})`, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" },
+      logo: { fontSize: "20px", fontWeight: "800", letterSpacing: "1px" },
+      sec: { padding: "14px 16px" },
+      card: { background: C.card, borderRadius: "12px", padding: "16px", marginBottom: "12px", border: `1px solid ${C.accent2}` },
+      inp: { width: "100%", background: "#080810", border: `1px solid ${C.accent2}`, borderRadius: "8px", padding: "10px 12px", color: C.text, fontSize: "13px", boxSizing: "border-box" },
+      ta: { width: "100%", background: "#080810", border: `1px solid ${C.accent2}`, borderRadius: "8px", padding: "10px 12px", color: C.text, fontSize: "13px", minHeight: "100px", boxSizing: "border-box", resize: "vertical" },
+      btn: (bg = C.accent, c = "#fff") => ({ background: bg, color: c, border: "none", borderRadius: "8px", padding: "11px 16px", cursor: "pointer", fontWeight: "700", fontSize: "13px", width: "100%" }),
+      btnSm: (bg = C.accent2) => ({ background: bg, color: "#fff", border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer", fontWeight: "600", fontSize: "12px" }),
+      lbl: { fontSize: "12px", color: C.muted, marginBottom: "5px", display: "block" },
+      err: { background: "#2d0000", border: "1px solid #f00", borderRadius: "8px", padding: "10px", color: "#f88", fontSize: "13px", marginBottom: "10px" },
+      res: { background: "#060612", border: `1px solid ${C.green}`, borderRadius: "8px", padding: "12px", fontSize: "12px", lineHeight: "1.8", whiteSpace: "pre-wrap", maxHeight: "320px", overflowY: "auto" },
+      tab: (a) => ({ padding: "9px 14px", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "12px", borderBottom: a ? `3px solid ${C.accent}` : "3px solid transparent", background: "transparent", color: a ? C.accent : C.muted, whiteSpace: "nowrap" }),
+      tabBar: { display: "flex", borderBottom: `1px solid ${C.accent2}`, overflowX: "auto" },
+      badge: (bg = C.accent) => ({ background: bg, color: bg === C.yellow ? "#000" : "#fff", borderRadius: "20px", padding: "2px 9px", fontSize: "11px", fontWeight: "700", display: "inline-block" }),
+      row: { display: "flex", gap: "8px", alignItems: "center" },
+    };
+
+    const SK = "xshebi_v3";
+    const AK = "xshebi_key";
+    const load = () => { try { return JSON.parse(localStorage.getItem(SK) || "[]"); } catch { return []; } };
+    const savePDB = (d) => localStorage.setItem(SK, JSON.stringify(d));
+    const toB64 = (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+
+    function App() {
+      const [key, setKey] = useState("");
+      const [keySet, setKeySet] = useState(false);
+      const [projects, setProjects] = useState([]);
+      const [proj, setProj] = useState(null);
+      const [screen, setScreen] = useState("home");
+      const [tab, setTab] = useState("data");
+      const [err, setErr] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [loadMsg, setLoadMsg] = useState("");
+
+      const [viralTitles, setViralTitles] = useState("");
+      const [nonViralTitles, setNonViralTitles] = useState("");
+      const [viralScripts, setViralScripts] = useState("");
+      const [nonViralScripts, setNonViralScripts] = useState("");
+      const [seoData, setSeoData] = useState("");
+      const [thumbs, setThumbs] = useState([]);
+      const thumbRef = useRef();
+
+      const [lang, setLang] = useState("");
+      const [country, setCountry] = useState("");
+      const [audience, setAudience] = useState("");
+      const [niche, setNiche] = useState("");
+
+      const [titleResult, setTitleResult] = useState("");
+      const [scriptResult, setScriptResult] = useState("");
+      const [seoResult, setSeoResult] = useState("");
+      const [thumbResult, setThumbResult] = useState("");
+      const [newProjName, setNewProjName] = useState("");
+
+      useEffect(() => {
+        setProjects(load());
+        const k = localStorage.getItem(AK);
+        if (k) { setKey(k); setKeySet(true); }
+      }, []);
+
+      const gemini = async (prompt, images = []) => {
+        const parts = [{ text: prompt }];
+        images.forEach(img => parts.unshift({ inline_data: { mime_type: img.type, data: img.b64 } }));
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts }] }) }
+        );
+        if (!res.ok) { const e = await res.json(); throw new Error(e?.error?.message || "API Error — Check your key"); }
+        const d = await res.json();
+        return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      };
+
+      const saveProjs = (p) => { setProjects(p); savePDB(p); };
+      const updateProj = (updated) => { const all = projects.map(p => p.id === updated.id ? updated : p); saveProjs(all); setProj(updated); };
+
+      const openProj = (p) => {
+        setProj(p); setScreen("project"); setTab("data"); setErr("");
+        setViralTitles(""); setNonViralTitles(""); setViralScripts(""); setNonViralScripts(""); setSeoData(""); setThumbs([]);
+        setLang(p.lang || ""); setCountry(p.country || ""); setAudience(p.audience || ""); setNiche(p.niche || "");
+        setTitleResult(""); setScriptResult(""); setSeoResult(""); setThumbResult("");
+      };
+
+      const createProj = () => {
+        if (!newProjName.trim()) return setErr("Project naam daalen!");
+        const p = { id: Date.now(), name: newProjName.trim(), analysisData: null, lang: "", country: "", audience: "", niche: "", history: [] };
+        const all = [...projects, p]; saveProjs(all); setNewProjName(""); openProj(p);
+      };
+
+      const handleThumbUpload = async (e) => {
+        const files = Array.from(e.target.files);
+        const loaded = await Promise.all(files.slice(0, 4).map(async f => ({ name: f.name, type: f.type, b64: await toB64(f), url: URL.createObjectURL(f) })));
+        setThumbs(prev => [...prev, ...loaded].slice(0, 4));
+      };
+
+      const handleAnalyse = async () => {
+        if (!viralTitles.trim()) return setErr("Viral titles zaroori hain!");
+        if (!lang.trim() || !country.trim()) return setErr("Language aur country pehle setup tab mein daalen!");
+        setLoading(true); setErr("");
+        try {
+          let thumbAnalysis = "";
+          if (thumbs.length > 0) {
+            setLoadMsg("🖼️ Thumbnails analyse ho rahi hain...");
+            thumbAnalysis = await gemini(`Analyse these YouTube thumbnails deeply: 1. COLOR SCHEME & DOMINANT COLORS 2. TEXT STYLE (font, size, placement, color) 3. FACE/EMOTION (if any) 4. LAYOUT & COMPOSITION 5. VISUAL HOOKS 6. CONTRAST & BRIGHTNESS 7. OVERALL STYLE PATTERN 8. WHAT MAKES THEM CLICK-WORTHY`, thumbs);
+          }
+
+          setLoadMsg("🔍 Competitor viral pattern analyse ho raha hai...");
+          const analysis = await gemini(`You are an expert YouTube strategist. Analyse this competitor data deeply:\n\nVIRAL TITLES:\n${viralTitles}\n\nNON-VIRAL TITLES:\n${nonViralTitles || "Not provided"}\n\nVIRAL SCRIPTS:\n${viralScripts || "Not provided"}\n\nNON-VIRAL SCRIPTS:\n${nonViralScripts || "Not provided"}\n\nSEO DATA:\n${seoData || "Not provided"}\n\nTHUMBNAIL ANALYSIS:\n${thumbAnalysis || "Not provided"}\n\nTARGET LANGUAGE: ${lang}\nTARGET COUNTRY: ${country}\n\nProvide detailed analysis of: 1. VIRAL TITLE FORMULA 2. NON-VIRAL MISTAKES 3. SCRIPT STYLE 4. SEO STRATEGY 5. THUMBNAIL STRATEGY 6. WINNING FORMULA`);
+
+          const updated = { ...proj, analysisData: { analysis, thumbAnalysis, viralTitles, nonViralTitles, viralScripts, seoData, date: new Date().toLocaleDateString() }, lang, country, audience, niche };
+          updateProj(updated);
+          setTab("generate");
+          setErr("");
+        } catch (e) { setErr("❌ " + e.message); }
+        setLoading(false); setLoadMsg("");
+      };
+
+      const handleGenerateTitle = async () => {
+        if (!proj?.analysisData) return setErr("Pehle Data tab mein analyse karo!");
+        setLoading(true); setErr(""); setLoadMsg("🏆 Viral titles ban rahi hain...");
+        try {
+          const r = await gemini(`You are a YouTube title expert. Create 10 VIRAL titles in ${proj.lang} for ${proj.country} market.\n\nBased on analysis:\n${proj.analysisData.analysis}\n\nDO NOT copy these competitor titles:\n${proj.analysisData.viralTitles}\n\nAvoid style of these non-viral titles:\n${proj.analysisData.nonViralTitles || "None"}\n\nEach title must use winning formula but be completely fresh and original.`);
+          setTitleResult(r);
+          updateProj({ ...proj, history: [...(proj.history || []), { type: "title", result: r, date: new Date().toLocaleDateString() }] });
+        } catch (e) { setErr("❌ " + e.message); }
+        setLoading(false); setLoadMsg("");
+      };
+
+      const handleGenerateScript = async () => {
+        if (!proj?.analysisData) return setErr("Pehle analyse karo!");
+        if (!titleResult) return setErr("Pehle title generate karo!");
+        setLoading(true); setErr(""); setLoadMsg("✍️ Script likh raha hai...");
+        try {
+          const r = await gemini(`Write a complete YouTube script based on this analysis:\n\n${proj.analysisData.analysis}\n\nTITLE: ${titleResult.split("\n")[0]}\nLANGUAGE: ${proj.lang}\nCOUNTRY: ${proj.country}\n\nMatch competitor viral script style exactly. Include hook, main content, CTA. Add [PAUSE], [EMPHASIS], [B-ROLL] markers.`);
+          setScriptResult(r);
+          updateProj({ ...proj, history: [...(proj.history || []), { type: "script", result: r, date: new Date().toLocaleDateString() }] });
+        } catch (e) { setErr("❌ " + e.message); }
+        setLoading(false); setLoadMsg("");
+      };
+
+      const handleGenerateSEO = async () => {
+        if (!proj?.analysisData) return setErr("Pehle analyse karo!");
+        setLoading(true); setErr(""); setLoadMsg("📊 SEO ban raha hai...");
+        try {
+          const r = await gemini(`Generate complete SEO package for ${proj.country} market.\n\nAnalysis:\n${proj.analysisData.analysis}\n\nTitle: ${titleResult.split("\n")[0] || "Video"}\n\nInclude: 5 optimized titles, 40 tags, full description, 15 hashtags, best upload time, keyword strategy.`);
+          setSeoResult(r);
+          updateProj({ ...proj, history: [...(proj.history || []), { type: "seo", result: r, date: new Date().toLocaleDateString() }] });
+        } catch (e) { setErr("❌ " + e.message); }
+        setLoading(false); setLoadMsg("");
+      };
+
+      const handleGenerateThumb = async () => {
+        if (!proj?.analysisData) return setErr("Pehle analyse karo!");
+        setLoading(true); setErr(""); setLoadMsg("🎨 Thumbnails ban rahi hain...");
+        try {
+          const r = await gemini(`Create 3 unique thumbnail concepts.\n\nAnalysis:\n${proj.analysisData.thumbAnalysis || "Bold, bright colors, emotional faces"}\n\nTitle: ${titleResult.split("\n")[0] || "Video"}\n\nFor each: concept, background color, main subject, text overlay, AI prompt, why it works.`);
+          setThumbResult(r);
+          updateProj({ ...proj, history: [...(proj.history || []), { type: "thumbnail", result: r, date: new Date().toLocaleDateString() }] });
+        } catch (e) { setErr("❌ " + e.message); }
+        setLoading(false); setLoadMsg("");
+      };
+
+      if (!keySet) return (
+        <div style={S.app}>
+          <div style={S.hdr}><div style={S.logo}>Xshebi <span style={{ color: C.yellow }}>✦</span> Creator</div></div>
+          <div style={S.sec}>
+            <div style={{ ...S.card, textAlign: "center", marginTop: "40px", border: `1px solid ${C.yellow}` }}>
+              <div style={{ fontSize: "50px", marginBottom: "10px" }}>🔑</div>
+              <div style={{ fontSize: "20px", fontWeight: "800", marginBottom: "6px" }}>Gemini API Key Daalen</div>
+              <div style={{ color: C.muted, fontSize: "12px", marginBottom: "20px" }}>👉 aistudio.google.com → Get API Key (Free)</div>
+              {err && <div style={S.err}>{err}</div>}
+              <input style={{ ...S.inp, marginBottom: "12px" }} type="password" placeholder="AIza..." value={key} onChange={e => setKey(e.target.value)} />
+              <button style={S.btn(C.yellow, "#000")} onClick={() => { if (!key.trim()) return setErr("Key daalen!"); localStorage.setItem(AK, key.trim()); setKeySet(true); }}>✅ Save & Start</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      if (screen === "home") return (
+        <div style={S.app}>
+          <div style={S.hdr}>
+            <div style={S.logo}>Xshebi <span style={{ color: C.yellow }}>✦</span> Creator</div>
+            <button style={S.btnSm()} onClick={() => { setKeySet(false); localStorage.removeItem(AK); }}>🔑</button>
+          </div>
+          <div style={S.sec}>
+            <div style={{ ...S.card, background: `linear-gradient(135deg,${C.accent2},${C.accent})`, border: "none" }}>
+              <div style={{ fontWeight: "800", fontSize: "15px", marginBottom: "12px" }}>➕ New Project</div>
+              <div style={S.row}>
+                <input style={{ ...S.inp, flex: 1 }} placeholder="Channel name..." value={newProjName} onChange={e => { setNewProjName(e.target.value); setErr(""); }} />
+                <button style={{ ...S.btnSm(C.yellow), color: "#000", padding: "10px 16px" }} onClick={createProj}>Create</button>
+              </div>
+              {err && <div style={{ ...S.err, marginTop: "8px" }}>{err}</div>}
+            </div>
+
+            <div style={{ fontWeight: "800", fontSize: "16px", marginBottom: "12px" }}>📁 Projects ({projects.length})</div>
+
+            {projects.length === 0 && <div style={{ ...S.card, textAlign: "center", padding: "40px", color: C.muted }}>🎬 Pehla project banao!</div>}
+
+            {projects.map(p => (
+              <div key={p.id} style={S.card}>
+                <div style={S.row}>
+                  <div onClick={() => openProj(p)} style={{ cursor: "pointer", flex: 1 }}>
+                    <div style={{ fontWeight: "700", fontSize: "15px" }}>📌 {p.name}</div>
+                    <div style={{ color: C.muted, fontSize: "11px", marginTop: "3px" }}>{p.lang && `${p.lang} • ${p.country}`} • {p.history?.length || 0} items</div>
+                    <div style={{ marginTop: "7px" }}>
+                      <span style={S.badge(p.analysisData ? C.green : "#444")}>{p.analysisData ? "✅" : "⏳"}</span>
+                    </div>
+                  </div>
+                  <button style={S.btnSm("#3d0000")} onClick={() => saveProjs(projects.filter(x => x.id !== p.id))}>🗑️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+      const tabs = ["data", "setup", "generate", "history"];
+      const tabLabels = { data: "📊 Data", setup: "🌍 Setup", generate: "🚀 Generate", history: "📚 History" };
+
+      return (
+        <div style={S.app}>
+          <div style={S.hdr}>
+            <button style={S.btnSm()} onClick={() => setScreen("home")}>← Back</button>
+            <div style={{ ...S.logo, fontSize: "15px" }}>📌 {proj?.name}</div>
+            <span style={S.badge(proj?.analysisData ? C.green : "#444")}>{proj?.analysisData ? "✅" : "⏳"}</span>
+          </div>
+
+          <div style={S.tabBar}>
+            {tabs.map(t => <button key={t} style={S.tab(tab === t)} onClick={() => { setTab(t); setErr(""); }}>{tabLabels[t]}</button>)}
+          </div>
+
+          <div style={S.sec}>
+            {err && <div style={S.err}>⚠️ {err}</div>}
+
+            {loading && (
+              <div style={{ ...S.card, textAlign: "center", border: `1px solid ${C.yellow}`, padding: "24px" }}>
+                <div style={{ fontSize: "32px", marginBottom: "8px" }}>⚙️</div>
+                <div style={{ color: C.yellow, fontWeight: "700" }}>{loadMsg}</div>
+              </div>
+            )}
+
+            {tab === "data" && !loading && (
+              <div>
+                <div style={{ ...S.card, border: `1px solid ${C.yellow}` }}>
+                  <div style={{ fontWeight: "800", color: C.yellow, fontSize: "15px", marginBottom: "14px" }}>📊 Competitor Data</div>
+
+                  <label style={S.lbl}>🔥 Viral Titles *</label>
+                  <textarea style={{ ...S.ta, minHeight: "130px", marginBottom: "12px" }} placeholder="Title 1\nTitle 2\n..." value={viralTitles} onChange={e => setViralTitles(e.target.value)} />
+
+                  <label style={S.lbl}>❌ Non-Viral Titles</label>
+                  <textarea style={{ ...S.ta, marginBottom: "12px" }} placeholder="..." value={nonViralTitles} onChange={e => setNonViralTitles(e.target.value)} />
+
+                  <label style={S.lbl}>📝 Viral Scripts</label>
+                  <textarea style={{ ...S.ta, minHeight: "150px", marginBottom: "12px" }} placeholder="Script 1\n---\nScript 2\n..." value={viralScripts} onChange={e => setViralScripts(e.target.value)} />
+
+                  <label style={S.lbl}>📝 Non-Viral Scripts</label>
+                  <textarea style={{ ...S.ta, marginBottom: "12px" }} placeholder="..." value={nonViralScripts} onChange={e => setNonViralScripts(e.target.value)} />
+
+                  <label style={S.lbl}>🏷️ SEO Data</label>
+                  <textarea style={{ ...S.ta, marginBottom: "12px" }} placeholder="Tags, keywords, descriptions..." value={seoData} onChange={e => setSeoData(e.target.value)} />
+
+                  <label style={S.lbl}>🖼️ Thumbnails</label>
+                  <input ref={thumbRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleThumbUpload} />
+                  <button style={{ ...S.btn(C.accent2), marginBottom: "14px" }} onClick={() => thumbRef.current.click()}>📁 Upload ({thumbs.length}/4)</button>
+
+                  {thumbs.length > 0 && <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>{thumbs.map((t, i) => <div key={i} style={{ position: "relative" }}><img src={t.url} alt="" style={{ width: "90px", height: "56px", objectFit: "cover", borderRadius: "6px", border: `2px solid ${C.green}` }} /><button onClick={() => setThumbs(thumbs.filter((_, j) => j !== i))} style={{ position: "absolute", top: "-7px", right: "-7px", background: C.accent, border: "none", borderRadius: "50%", width: "20px", height: "20px", cursor: "pointer", color: "#fff", fontSize: "11px", fontWeight: "700" }}>×</button></div>)}</div>}
+
+                  <button style={S.btn(C.accent)} onClick={handleAnalyse} disabled={loading}>🔍 Analyse Karo</button>
+                </div>
+
+                {proj?.analysisData && (
+                  <div style={{ ...S.card, border: `1px solid ${C.green}` }}>
+                    <div style={{ fontWeight: "700", color: C.green, marginBottom: "10px" }}>✅ Analysis Saved</div>
+                    <div style={S.res}>{proj.analysisData.analysis}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {tab === "setup" && !loading && (
+              <div>
+                <div style={{ ...S.card, border: `1px solid ${C.blue}` }}>
+                  <label style={S.lbl}>📢 Language *</label>
+                  <input style={{ ...S.inp, marginBottom: "10px" }} placeholder="Urdu, Hindi, English..." value={lang} onChange={e => setLang(e.target.value)} />
+
+                  <label style={S.lbl}>🌏 Country *</label>
+                  <input style={{ ...S.inp, marginBottom: "10px" }} placeholder="Pakistan, India, UAE..." value={country} onChange={e => setCountry(e.target.value)} />
+
+                  <label style={S.lbl}>👥 Audience</label>
+                  <input style={{ ...S.inp, marginBottom: "10px" }} placeholder="Target audience..." value={audience} onChange={e => setAudience(e.target.value)} />
+
+                  <label style={S.lbl}>📌 Niche</label>
+                  <input style={{ ...S.inp, marginBottom: "14px" }} placeholder="Tech, Finance, Gaming..." value={niche} onChange={e => setNiche(e.target.value)} />
+
+                  <button style={S.btn(C.blue)} onClick={() => { if (!lang.trim() || !country.trim()) return setErr("Language aur Country zaroori!"); updateProj({ ...proj, lang, country, audience, niche }); setErr(""); }}>✅ Save</button>
+                </div>
+              </div>
+            )}
+
+            {tab === "generate" && !loading && (
+              <div>
+                {!proj?.analysisData && <div style={{ ...S.err, color: C.yellow }}>⚠️ Pehle "Data" tab mein analyse karo!</div>}
+                {!proj?.lang && <div style={{ ...S.err, color: C.blue }}>⚠️ Pehle "Setup" tab mein language set karo!</div>}
+
+                <div style={{ ...S.card, border: `1px solid ${C.yellow}` }}>
+                  <div style={{ fontWeight: "800", color: C.yellow, marginBottom: "12px" }}>🏆 Viral Titles</div>
+                  <button style={S.btn(C.yellow, "#000")} onClick={handleGenerateTitle} disabled={loading || !proj?.analysisData}>✨ Generate</button>
+                  {titleResult && <div style={{ marginTop: "12px", ...S.res }}>{titleResult}</div>}
+                </div>
+
+                <div style={{ ...S.card, border: `1px solid ${C.accent}` }}>
+                  <div style={{ fontWeight: "800", color: C.accent, marginBottom: "12px" }}>📝 Script</div>
+                  <button style={S.btn(C.accent)} onClick={handleGenerateScript} disabled={loading || !titleResult}>✍️ Generate</button>
+                  {scriptResult && <div style={{ marginTop: "12px", ...S.res }}>{scriptResult}</div>}
+                </div>
+
+                <div style={{ ...S.card, border: `1px solid ${C.green}` }}>
+                  <div style={{ fontWeight: "800", color: C.green, marginBottom: "12px" }}>📊 SEO</div>
+                  <button style={S.btn(C.green, "#000")} onClick={handleGenerateSEO} disabled={loading || !proj?.analysisData}>🏷️ Generate</button>
+                  {seoResult && <div style={{ marginTop: "12px", ...S.res }}>{seoResult}</div>}
+                </div>
+
+                <div style={{ ...S.card, border: `1px solid ${C.purple}` }}>
+                  <div style={{ fontWeight: "800", color: C.purple, marginBottom: "12px" }}>🖼️ Thumbnails</div>
+                  <button style={S.btn(C.purple)} onClick={handleGenerateThumb} disabled={loading || !proj?.analysisData}>🎨 Generate</button>
+                  {thumbResult && <div style={{ marginTop: "12px", ...S.res }}>{thumbResult}</div>}
+                </div>
+              </div>
+            )}
+
+            {tab === "history" && (
+              <div>
+                <div style={{ fontWeight: "800", fontSize: "16px", marginBottom: "12px" }}>📚 History</div>
+                {(!proj?.history || proj.history.length === 0) && <div style={{ ...S.card, textAlign: "center", color: C.muted }}>No history yet</div>}
+                {[...(proj?.history || [])].reverse().map((h, i) => (
+                  <div key={i} style={{ ...S.card }}>
+                    <div style={{ fontWeight: "700", marginBottom: "8px" }}>{h.type} — {h.date}</div>
+                    <div style={{ ...S.res, maxHeight: "100px" }}>{h.result?.slice(0, 200)}...</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+  </html>
